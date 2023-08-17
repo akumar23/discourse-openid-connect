@@ -38,6 +38,8 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
 
   def discovery_document
     document_url = SiteSetting.openid_connect_discovery_document.presence
+    retries = 30
+    delay = 1
     if !document_url
       oidc_log("No discovery document URL specified", error: true)
       return
@@ -57,15 +59,14 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
             end
           JSON.parse(connection.get(document_url).body)
         rescue Faraday::Error, JSON::ParserError => e
-          oidc_log("Fetching discovery document raised error #{e.class} #{e.message}", error: true)
+          if retries == 0
+            oidc_log("Fetching discovery document raised error #{e.class} #{e.message}", error: true)
+            return
+          puts "Oh no, we failed. Retries left: #{retries -= 1}"
+          sleep delay
+          retry
           nil
         end
-
-    oidc_log("Discovery document loaded from cache") if from_cache
-    oidc_log("Discovery document is\n\n#{result.to_yaml}")
-
-    result
-  end
 
   def oidc_log(message, error: false)
     if error
