@@ -52,6 +52,7 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
         .fetch("openid-connect-discovery-#{document_url}", expires_in: 10.minutes) do
           from_cache = false
           oidc_log("Fetching discovery document from #{document_url}")
+          puts "Connecting to discovery document..."
           connection =
             Faraday.new(request: { timeout: request_timeout_seconds }) do |c|
               c.use Faraday::Response::RaiseError
