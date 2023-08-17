@@ -62,11 +62,12 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
           if retries == 0
             oidc_log("Fetching discovery document raised error #{e.class} #{e.message}", error: true)
             return
+          end
           puts "Oh no, we failed. Retries left: #{retries -= 1}"
           sleep delay
           retry
-          nil
         end
+      end
 
   def oidc_log(message, error: false)
     if error
